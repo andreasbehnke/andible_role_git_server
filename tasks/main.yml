@@ -3,12 +3,10 @@
   - name: install git
     become: yes
     apt: name=git state=latest
-    when: git_repositories is defined
 
   - name: add git user
     become: yes
     user: name=git shell=/usr/bin/git-shell home=/home/git generate_ssh_key=yes
-    when: git_repositories is defined
 
   - name: git add authorized keys
     become: yes
@@ -19,16 +17,13 @@
     become: yes
     file: path={{ item }} owner=git group=git mode="0750" state=directory
     with_items: "{{git_repositories}}"
-    when: git_repositories is defined
 
   - name: initialize git repositories
     become: yes
     command: chdir={{ item }} creates={{ item }}/HEAD git init --bare
     with_items: "{{git_repositories}}"
-    when: git_repositories is defined
 
   - name: apply credentials to repositories
     become: yes
     file: path={{ item }} owner=git group=git mode="0770" state=directory recurse=yes
     with_items: "{{git_repositories}}"
-    when: git_repositories is defined
