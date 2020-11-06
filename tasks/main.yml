@@ -6,6 +6,19 @@
       name: git
       state: latest
 
+  - name: set umask for all session - configure pam
+    become: yes
+    lineinfile:
+      path: "/etc/pam.d/common-session"
+      line: "session optional\tpam_umask.so"
+
+  - name: set umask for all session - configure login definitions
+    become: yes
+    lineinfile:
+      path: "/etc/login.defs"
+      regexp: "^UMASK"
+      line: "UMASK\t\t027"
+
   - name: add git user
     become: yes
     user: 
@@ -27,7 +40,7 @@
       path: "{{ item }}"
       owner: "git"
       group: "git"
-      mode: "0750"
+      mode: "u=rwX,g=rX,o="
       state: directory
     loop: "{{git_repositories}}"
 
@@ -45,7 +58,7 @@
       path: "{{ item }}"
       owner: "git"
       group: "git"
-      mode: "0770"
+      mode: "u+X,g=rX,o="
       state: directory
       recurse: yes
     loop: "{{git_repositories}}"
