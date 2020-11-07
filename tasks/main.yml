@@ -6,13 +6,17 @@
       name: git
       state: latest
 
-  - name: set umask for all session - configure pam
+    # Make sure the other permission flags for files and folders are never been set.
+    # Whith this umask of 027 we make sure, multiple users on system can not see files
+    # of each other.
+
+  - name: set umask for all sessions - configure pam
     become: yes
     lineinfile:
       path: "/etc/pam.d/common-session"
       line: "session optional\tpam_umask.so"
 
-  - name: set umask for all session - configure login definitions
+  - name: set umask for all sessions - configure login definitions
     become: yes
     lineinfile:
       path: "/etc/login.defs"
@@ -51,6 +55,12 @@
       creates: "{{ item }}/HEAD"
       cmd: "git init --bare"
     loop: "{{git_repositories}}"
+
+    # Ensure that each existing repository has set correct permissions for user and group.
+    # Remove any permission for other. We set user permissions not explizitly, because git
+    # itself uses different permissions: Objects are stored readonly to make the repository
+    # immutable, and sometimes the execution flag may be set for a single file. Therfore
+    # we ensure only that the permission X is set to directories.
 
   - name: apply credentials to repositories
     become: yes
