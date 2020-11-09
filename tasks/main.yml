@@ -43,12 +43,14 @@
     loop_control:
       loop_var: git_user
 
+    # Initialize direcectories for git repositories
+
   - name: create directories for git repositories
     become: yes
     file: 
-      path: "{{ item }}"
-      owner: "git"
-      group: "git"
+      path: "{{ item.path }}"
+      owner: "{{ item.user }}"
+      group: "{{ item.user }}"
       mode: "u=rwX,g=rX,o="
       state: directory
     loop: "{{ git_repositories }}"
@@ -56,23 +58,23 @@
   - name: initialize git repositories
     become: yes
     command:
-      chdir: "{{ item }}"
-      creates: "{{ item }}/HEAD"
+      chdir: "{{ item.path }}"
+      creates: "{{ item.path }}/HEAD"
       cmd: "git init --bare"
     loop: "{{ git_repositories }}"
 
     # Ensure that each existing repository has set correct permissions for user and group.
     # Remove any permission for other. We set user permissions not explizitly, because git
     # itself uses different permissions: Objects are stored readonly to make the repository
-    # immutable, and sometimes the execution flag may be set for a single file. Therfore
+    # immutable, and sometimes the execution flag may be set for a single file. Therefore
     # we ensure only that the permission X is set to directories.
 
   - name: apply credentials to repositories
     become: yes
     file:
-      path: "{{ item }}"
-      owner: "git"
-      group: "git"
+      path: "{{ item.path }}"
+      owner: "{{ item.user }}"
+      group: "{{ item.user }}"
       mode: "u+X,g=rX,o="
       state: directory
       recurse: yes
