@@ -23,13 +23,15 @@
       regexp: "^UMASK"
       line: "UMASK\t\t027"
 
-  - name: add git user
+    # Add users
+
+  - name: add git users
     become: yes
     user: 
-      name: git
+      name: "{{ item.name }}"
       shell: "/usr/bin/git-shell"
-      home: "/home/git"
-      generate_ssh_key: yes
+      home: "/home/{{ item.name }}"
+    loop: "{{ git_users }}"
 
   - name: git add authorized keys
     become: yes
@@ -46,7 +48,7 @@
       group: "git"
       mode: "u=rwX,g=rX,o="
       state: directory
-    loop: "{{git_repositories}}"
+    loop: "{{ git_repositories }}"
 
   - name: initialize git repositories
     become: yes
@@ -54,7 +56,7 @@
       chdir: "{{ item }}"
       creates: "{{ item }}/HEAD"
       cmd: "git init --bare"
-    loop: "{{git_repositories}}"
+    loop: "{{ git_repositories }}"
 
     # Ensure that each existing repository has set correct permissions for user and group.
     # Remove any permission for other. We set user permissions not explizitly, because git
@@ -71,4 +73,4 @@
       mode: "u+X,g=rX,o="
       state: directory
       recurse: yes
-    loop: "{{git_repositories}}"
+    loop: "{{ git_repositories }}"
