@@ -34,11 +34,14 @@
     loop: "{{ git_users }}"
 
   - name: git add authorized keys
-    become: yes
-    authorized_key: 
-      user: git
-      key: "{{ lookup('file', '{{ remote_access_authorized_keys_prefix }}/{{ item }}.pub') }}"
-    loop: "{{ git_access_authorized_users }}"
+    include_tasks: authorized_keys.yml
+    vars:
+      - keys_prefix: "{{ remote_access_authorized_keys_prefix }}"
+      - authorized_users: "{{ git_user.authorized_users }}"
+      - user: "{{ git_user.name }}"
+    loop: "{{ git_users }}"
+    loop_control:
+      loop_var: git_user
 
   - name: create directories for git repositories
     become: yes
